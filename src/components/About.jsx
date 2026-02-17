@@ -1,11 +1,27 @@
 import React from "react";
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import "./About.css";
 
 const About = () => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.3 });
+  const [isMobile, setIsMobile] = useState(false);
+  const isInView = useInView(ref, {
+    once: true,
+    amount: 0.1,
+    margin: "-50px 0px",
+  });
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const stats = [
     { value: "3+", label: "Years Experience", icon: "⏳" },
@@ -41,13 +57,50 @@ const About = () => {
     },
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { duration: 0.8 },
+    },
+  };
+
+  const textVariants = {
+    hidden: { x: -20, opacity: 0 },
+    visible: {
+      x: 0,
+      opacity: 1,
+      transition: { duration: 0.6 },
+    },
+  };
+
+  const statsVariants = {
+    hidden: { x: 20, opacity: 0 },
+    visible: {
+      x: 0,
+      opacity: 1,
+      transition: { duration: 0.6 },
+    },
+  };
+
+  const timelineVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, delay: i * 0.1 },
+    }),
+  };
+
   return (
     <section id="about" className="about" ref={ref}>
       <motion.div
         className="about-container"
-        initial={{ opacity: 0 }}
-        animate={isInView ? { opacity: 1 } : {}}
-        transition={{ duration: 0.8 }}
+        variants={containerVariants}
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
+        // Force animation on mobile if needed
+        {...(isMobile && !isInView ? { animate: "visible" } : {})}
       >
         <h2 className="section-title">
           <span className="section-number">01.</span> ABOUT ME
@@ -57,9 +110,10 @@ const About = () => {
         <div className="about-content">
           <motion.div
             className="about-text"
-            initial={{ x: -50, opacity: 0 }}
-            animate={isInView ? { x: 0, opacity: 1 } : {}}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            variants={textVariants}
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
+            transition={{ delay: 0.2 }}
           >
             <h3>
               I craft digital <span className="gradient-text">experiences</span>{" "}
@@ -77,7 +131,11 @@ const About = () => {
               opportunity to innovate and create something extraordinary.
             </p>
 
-            <motion.div className="signature" whileHover={{ scale: 1.1 }}>
+            <motion.div
+              className="signature"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
               <span className="signature-text">Creative Developer</span>
               <div className="signature-line"></div>
             </motion.div>
@@ -85,15 +143,17 @@ const About = () => {
 
           <motion.div
             className="about-stats"
-            initial={{ x: 50, opacity: 0 }}
-            animate={isInView ? { x: 0, opacity: 1 } : {}}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            variants={statsVariants}
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
+            transition={{ delay: 0.4 }}
           >
             {stats.map((stat, index) => (
               <motion.div
                 key={index}
                 className="stat-card"
-                whileHover={{ y: -10, scale: 1.05 }}
+                whileHover={!isMobile ? { y: -10, scale: 1.05 } : {}}
+                whileTap={isMobile ? { scale: 0.95 } : {}}
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 <div className="stat-icon">{stat.icon}</div>
@@ -112,9 +172,10 @@ const About = () => {
               <motion.div
                 key={index}
                 className="timeline-item"
-                initial={{ opacity: 0, y: 50 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
+                variants={timelineVariants}
+                initial="hidden"
+                animate={isInView ? "visible" : "hidden"}
+                custom={index}
               >
                 <div className="timeline-dot"></div>
                 <div className="timeline-content">
